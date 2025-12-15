@@ -3,6 +3,6 @@
 Code for Arduino
 Clock, Date, Temperature, Pressure, Height, Humidity, Rainfall
 
-<p><a href="https://github.com/maciejnalewajka/Weather-Station/blob/master/Stacja%20Meteorologiczna.pdf">Documentation PDF</a></p>
+<p><a href="https://github.com/maciejnalewajka/Weather-Station/blob/master/Weather%20Station.pdf">Documentation PDF</a></p>
 
-![Alt text](https://github.com/maciejnalewajka/Weather-Station/blob/master/Stacja.jpg)
+![Alt text](https://github.com/maciejnalewajka/Weather-Station/blob/master/Station%20Schemajpg)

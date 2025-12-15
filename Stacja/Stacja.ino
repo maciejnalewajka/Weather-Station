@@ -12,259 +12,251 @@ const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2, pin8 = 8;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 LPS331 ps;
 
-// Inicjalizacja zmiennych
 int s_A0 = A0;
-int button1, button2, button3;
-int stan0, stan1, stan2, stan3;
-int prze = 0;
+int button_1, button_2, button_3;
+int state_0, state_1, state_2, state_3;
+int skip = 0;
 int h = 0, mi = 0, y = 0, mo = 1, d = 1;
-int godz2;
+int hour_2;
 int w_A0;
 int z = 5, i = 0, k = 0;
-String opa, godz, godz1, ret;
+String rain, hour, hour_1, ret;
 
 
 void setup(){
-  // Inicjalizacja
   
-  lcd.begin(16, 2);           // Inicjalizacja lcd
-  Wire.begin();               // Inicjalizacja zczytywania
-  clock.begin();              // Inicjalizacja zegara
-  pinMode(8, INPUT);          // Pin 8 jako wejscie
-  pinMode(7, INPUT_PULLUP);   // Pin 7 jako wejscie
-  pinMode(6, INPUT_PULLUP);   // Pin 6 jako wejscie
-  pinMode(9, INPUT_PULLUP);   // Pin 9 jako wejscie
-  ps.enableDefault();         // Resetowanie czujnika
-  clock.setDateTime(2018, 5, 15, 12, 0, 0);   // Ustawienie domyślnej daty
+  lcd.begin(16, 2);
+  Wire.begin();
+  clock.begin();
+  pinMode(8, INPUT);
+  pinMode(7, INPUT_PULLUP);
+  pinMode(6, INPUT_PULLUP);
+  pinMode(9, INPUT_PULLUP);
+  ps.enableDefault();
+  clock.setDateTime(2018, 5, 15, 12, 0, 0);
 }
 
 void loop(){
-  // Petla glowna
   
-  button1 = digitalRead(7);
-  button2 = digitalRead(9);
-  button3 = digitalRead(6);
+  button_1 = digitalRead(7);
+  button_2 = digitalRead(9);
+  button_3 = digitalRead(6);
   dt1 = clock.getDateTime();
-  godz1 = (String)(clock.dateFormat("s", dt1));
-  godz2= atoi(godz1.c_str());
-  if(button1 == LOW){stan3 = 1;}
-  if(button1 == HIGH && stan3 == 1){stan3=0;setTime();}
-  if(godz2%9==0){
-    poka();
+  hour_1 = (String)(clock.dateFormat("s", dt1));
+  hour_2= atoi(hour_1.c_str());
+  if(button_1 == LOW){state_3 = 1;}
+  if(button_1 == HIGH && state_3 == 1){state_3=0;setTime();}
+  if(hour_2%9==0){
+    show();
   }
-  if(button2 == LOW){stan1 = 1;}
-  if(button2 == HIGH && stan1 == 1){stan1=0;z+=1;poka();}
-  if(button3 == LOW){stan2 = 1;}
-  if(button3 == HIGH && stan2 == 1){stan2=0;z-=1;poka();}
+  if(button_2 == LOW){state_1 = 1;}
+  if(button_2 == HIGH && state_1 == 1){state_1=0;z+=1;show();}
+  if(button_3 == LOW){state_2 = 1;}
+  if(button_3 == HIGH && state_2 == 1){state_2=0;z-=1;show();}
 }
 
-String god(){
-  // String Godzina
+String getHour(){
 
   dt = clock.getDateTime();
-  godz = ((String)clock.dateFormat("H:i   d.m.y", dt));
-  return godz;
+  hour = ((String)clock.dateFormat("H:i   d.m.y", dt));
+  return hour;
   
 }
 
-String dane(){
-  //String Dane
+String getData(){
   
   if(z> 5){z=1;}
   if(z<1){z=5;}
-  if(z==5){ // Zczytuje temperaturÄ™
     int temp = ps.readTemperatureC()-2;
-    String temperatura = "Temp: " + (String)temp + "^C";
-    ret = temperatura;
-  }
-  if(z==1){ // Zczytuje wilgotnoĹ›Ä‡
+    String temperature = "Temp: " + (String)temp + "^C";
+    ret = temperature;
+  
+  if(z==1){
     DHT.read(pin8);
     int wil = (int)DHT.humidity;
-    String wilgotnosc = "Wilgotnosc: " + (String)wil + "%";
-    ret = wilgotnosc;
+    String humidity = "Humidity: " + (String)wil + "%";
+    ret = humidity;
   }
-  if(z==2){ // Zczytuje ciĹ›nienie
+  if(z==2){
     int cis = ps.readPressureMillibars();
-    String cisnienie = "Cisnienie:" + (String)cis + "hPa";
-    ret = cisnienie;
+    String pressure = "Pressure:" + (String)cis + "hPa";
+    ret = pressure;
   }
-  if(z==3){ // Zczytuje wysokoĹ›Ä‡
+  if(z==3){
     int cis = ps.readPressureMillibars();
     int wys = ps.pressureToAltitudeMeters(cis);
-    String wysokosc = "Wysokosc: " + (String)wys + "m";
-    ret = wysokosc;
+    String high = "High: " + (String)wys + "m";
+    ret = high;
   }
-  if(z==4){ // Sprawdza czy pada
+  if(z==4){
     w_A0 = analogRead(s_A0);
-    if(w_A0<=500){opa = "Pada";}
-    else{opa = "Nie Pada";}
-    ret = opa;
+    if(w_A0<=500){rain = "Rain";}
+    else{rain = "No Rain";}
+    ret = rain;
   }
-  // Zwraca Stringa z danymi
   return ret;
 }
 
 void setTime(){
-  // Ustaw Czas
   
-  stan0 = 1;
-  stan1 = 1;
+  state_0 = 1;
+  state_1 = 1;
   lcd.clear();
-  lcd.print("SET aby ustawic");
+  lcd.print("SET for set");
   lcd.setCursor(0, 1);
-  lcd.print("date i godzine.");
-  while(stan0 == 1){
-    button1 = digitalRead(7);
-    button2 = digitalRead(9);
-    button3 = digitalRead(6);
-    if(button1 == HIGH&&stan0==1){stan1 = 1;}
-    if(button1 == LOW && stan1 == 1){
+  lcd.print("data & time.");
+  while(state_0 == 1){
+    button_1 = digitalRead(7);
+    button_2 = digitalRead(9);
+    button_3 = digitalRead(6);
+    if(button_1 == HIGH&&state_0==1){state_1 = 1;}
+    if(button_1 == LOW && state_1 == 1){
       int tab[] = {0,3,14,9,6};
-      stan1=0;
+      state_1=0;
       i = i%6+1;
       k++;
       if(i<6){
         lcd.clear();
-        lcd.print(widok());
+        lcd.print(view());
         lcd.setCursor(tab[i-1], 1);
-        lcd.print(widok_d());
+        lcd.print(view_d());
       }
-      if(k>5){stan0=0;}
+      if(k>5){state_0=0;}
       delay(600);
     }
-    if(button2 == LOW && i == 1){
+    if(button_2 == LOW && i == 1){
       h++;
       if(h>23){h=0;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(0, 1);
-      lcd.print("^G");
+      lcd.print("^H");
       delay(600);
     }
-    if(button2 == LOW && i == 2){
+    if(button_2 == LOW && i == 2){
       mi++;
       if(mi>59){mi=0;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(3, 1);
       lcd.print("^M");
       delay(600);
     }
-    if(button2 == LOW && i == 3){
+    if(button_2 == LOW && i == 3){
       y = y%99+1;
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(14, 1);
-      lcd.print("^R");
+      lcd.print("^Y");
       delay(600);
     }
-    if(button2 == LOW && i == 4){
+    if(button_2 == LOW && i == 4){
       mo = mo%12+1;
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(9, 1);
       lcd.print("^M");
       delay(600);
     }
     if(mo==1 || mo==3 || mo==5 || mo==7 || mo==8 || mo==10 || mo==12){
-      if(button2 == LOW && i == 5){
+      if(button_2 == LOW && i == 5){
       d = d%31+1;
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
     }
     }
     if(mo==4 || mo==6 || mo==9 || mo==11){
-      if(button2 == LOW && i == 5){
+      if(button_2 == LOW && i == 5){
       d = d%30+1;
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
     }
     }
     if(mo==2){
-      if(y%4==0){prze=29;}
-      else{prze=28;}
-      if(button2 == LOW && i == 5){
-      d = d%prze+1;
+      if(y%4==0){skip=29;}
+      else{skip=28;}
+      if(button_2 == LOW && i == 5){
+      d = d%skip+1;
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
     }
     }
-    if(button3 == LOW && i == 1){
+    if(button_3 == LOW && i == 1){
       h--;
       if(h<0){h=23;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(0, 1);
-      lcd.print("^G");
+      lcd.print("^H");
       delay(600);
     }
-    if(button3 == LOW && i == 2){
+    if(button_3 == LOW && i == 2){
       mi--;
       if(mi<0){mi=59;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(3, 1);
       lcd.print("^M");
       delay(600);
     }
-    if(button3 == LOW && i == 3){
+    if(button_3 == LOW && i == 3){
       y --;
       if(y<0){y=99;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(14, 1);
-      lcd.print("^R");
+      lcd.print("^Y");
       delay(600);
     }
-    if(button3 == LOW && i == 4){
+    if(button_3 == LOW && i == 4){
       mo--;
       if(mo<1){mo=12;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(9, 1);
       lcd.print("^M");
       delay(600);
     }
     if(mo==1 || mo==3 || mo==5 || mo==7 || mo==8 || mo==10 || mo==12){
-      if(button3 == LOW && i == 5){
+      if(button_3 == LOW && i == 5){
       d--;
       if(d<1){d=31;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
     }
     }
     if(mo==4 || mo==6 || mo==9 || mo==11){
-      if(button3 == LOW && i == 5){
+      if(button_3 == LOW && i == 5){
       d--;
       if(d<1){d=30;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
     }
     }
     if(mo==2){
-      if(y%4==0){prze=29;}
-      else{prze=28;}
-      if(button3 == LOW && i == 5){
+      if(y%4==0){skip=29;}
+      else{skip=28;}
+      if(button_3 == LOW && i == 5){
       d--;
       if(d<1 && y%4 == 0){d=29;}
       if(d<1 && y%4 != 0){d=28;}
       lcd.clear();
-      lcd.print(widok());
+      lcd.print(view());
       lcd.setCursor(7, 1);
       lcd.print("^D");
       delay(600);
@@ -274,8 +266,7 @@ void setTime(){
   clock.setDateTime(2000+y, mo, d, h, mi, 0);
 }
 
-String widok(){
-  // Widok ustawiania czasu i daty (gora)
+String view(){
   
   String hh = (String)h;
   String mii = (String)mi;
@@ -294,24 +285,22 @@ String widok(){
   return w;
 }
 
- String widok_d(){
-  // Widok ustawiania czasu i daty (doł)
+ String view_d(){
   
-  String w2 = "^G";
+  String w2 = "^H";
   if(i==2){return w2 = "^M";}
-  if(i==3){return w2 = "^R";}
+  if(i==3){return w2 = "^Y";}
   if(i==4){return w2 = "^M";}
   if(i==5){return w2 = "^D";}
   return w2;
  }
 
- void poka(){
-  // Pokaz czas, date i dane
+ void show(){
   
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.print(god());
+  lcd.print(getHour());
   lcd.setCursor(0, 1);
-  lcd.print(dane());
+  lcd.print(getData());
   delay(600);
  }
